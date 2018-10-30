@@ -8,10 +8,10 @@ import numpy as np
 class Grid:
     def __init__(self, robot: cozmo.robot.Robot):
         self.gridSmall = [[0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 1, 0, 0, 1],
-                    [0, 0, 0, 0, 1]]
+                          [0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0],
+                          [0, 1, 0, 0, 1],
+                          [0, 0, 0, 0, 1]]
 
         self.gridLarge = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                           [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
@@ -67,6 +67,26 @@ class Grid:
                 self.nextPos[0] = self.currentPos[0] + 2
                 self.face("east")
                 success = 1
+        elif direction == "upright":                                             #edits
+            if self.locGrid[self.currentPos[0]+1][self.currentPos[1]] == 0:     #
+                self.nextPos[0] = self.currentPos[0] - 2                        #
+                self.face("northeast")                                          #
+                success = 2  
+        elif direction == "upleft":                                             #edits
+            if self.locGrid[self.currentPos[0]-1][self.currentPos[1]] == 0:     #
+                self.nextPos[0] = self.currentPos[0] - 2                        #
+                self.face("northwest")                                          #
+                success = 2
+        elif direction == "downright":                                             #edits
+            if self.locGrid[self.currentPos[0]+1][self.currentPos[1]+1] == 0:     #
+                self.nextPos[0] = self.currentPos[0] + 2                        #
+                self.face("southeast")                                          #
+                success = 3          
+        elif direction == "downleft":                                             #edits
+            if self.locGrid[self.currentPos[0]-1][self.currentPos[1]+1] == 0:     #
+                self.nextPos[0] = self.currentPos[0] + 2                        #
+                self.face("southwest")                                          #
+                success = 3                                                                                          #
         else:
             print('[GRID] Unable to execute navigation command: invalid direction provided.')
 
@@ -77,6 +97,12 @@ class Grid:
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
         elif success == 1:
             self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
+        elif success == 2:                                                                           
+            self.robot.drive_straight(distance_mm(177), speed_mmps(50)).wait_for_completed() #edit
+            self.robot.turn_in_place(degrees(45)).wait_for_completed()     
+        elif success == 3:    
+            self.robot.drive_straight(distance_mm(177), speed_mmps(50)).wait_for_completed() #edit
+            self.robot.turn_in_place(degrees(-45)).wait_for_completed()  
 
     def turn(self, rotation):
         self.nextPos[2] = self.currentPos[2] + rotation
@@ -100,6 +126,18 @@ class Grid:
         elif direction == "west":
             headingDifference = (currentHeading - 270) * -1.0
             self.currentPos[2] = 270
+        elif direction == "northeast":
+            headingDifference = (currentHeading - 45) * -1.0                     #edits
+            self.currentPos[2] = 45 
+        elif direction == "northwest":
+            headingDifference = (currentHeading - 315) * -1.0                     #edits
+            self.currentPos[2] = 315      
+                elif direction == "southheast":
+            headingDifference = (currentHeading - 225) * -1.0                     #edits
+            self.currentPos[2] = 225 
+        elif direction == "southwest":
+            headingDifference = (currentHeading - 135) * -1.0                     #edits
+            self.currentPos[2] = 135                                                          
         else:
             print("Invalid direction given to face(self, direction)")
 
@@ -110,3 +148,4 @@ class Grid:
 
     def setRobotPos(self):
         self.locGrid[self.currentPos[1]][self.currentPos[0]] = 2
+        
