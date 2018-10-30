@@ -2,21 +2,22 @@ import grid
 import cozmo
 from cozmo.util import degrees, distance_mm, speed_mmps
 
-grid = grid.Grid(cozmo.robot.Robot)
-robot = cozmo.robot.Robot
-
 def cozmo_program(robot: cozmo.robot.Robot):
 
-    grid.startLocalisation()
+    myGrid = grid.Grid(robot)
+
+    myGrid.startLocalisation()
+
+    myGrid.printGrid()
 
     # TEST CODE START HERE
 
-    robot.turn_in_place(degrees(90)).wait_for_completed()
-
-    grid.move("down")
+    myGrid.move("down")
+    myGrid.printGrid()
+    myGrid.move("right")
 
     # TEST CODE END HERE
     
-    grid.printGrid()
+    myGrid.printGrid()
 
 cozmo.run_program(cozmo_program)
