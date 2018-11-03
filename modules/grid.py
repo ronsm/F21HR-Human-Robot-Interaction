@@ -8,10 +8,10 @@ import numpy as np
 class Grid:
     def __init__(self, robot: cozmo.robot.Robot):
         self.gridSmall = [[0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0],
-                    [0, 1, 0, 0, 1],
-                    [0, 0, 0, 0, 1]]
+                        [0, 0, 0, 0, 0],
+                        [0, 0, 0, 0, 0],
+                        [0, 1, 0, 0, 1],
+                        [0, 0, 0, 0, 1]]
 
         self.gridLarge = [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                           [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
@@ -101,7 +101,7 @@ class Grid:
             headingDifference = (currentHeading - 270) * -1.0
             self.currentPos[2] = 270
         else:
-            print("Invalid direction given to face(self, direction)")
+            print("[GRID] Invalid direction given to face(self, direction)")
 
         self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
 
