@@ -159,9 +159,9 @@ class AStar(object):
             else:
                 print('[A*] Cannot move diagonally.')
 
-        print(path)
-        print(newPath)
-        print(actions)
+        print('Full path:', path)
+        print('Action path:', newPath)
+        print('Actions:', actions)
         self.printPath(path)
 
     """
@@ -200,5 +200,7 @@ class AStar(object):
 
         return isOnPath
 
+print('Navigating from:', (0, 0), 'to', (6, 4))
+print('')
 a = AStar()
 a.initLegoWorld((0, 0), (6, 4))
