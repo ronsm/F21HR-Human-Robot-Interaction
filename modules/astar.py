@@ -1,9 +1,11 @@
 from __future__ import print_function
 import heapq
+from cozmo.util import degrees, distance_mm, speed_mmps
+import cozmo
 
 """
 
-The A* algorithm here is based on the one implemented by Lauren Luce. Unless otherwise stated, functions in the AStar class are hers.
+The A* algorithm here is based on the one implemented by Lauren Luce. Unless otherwise stated, functions in the AStar class are his.
 Source: https://github.com/laurentluce/python-algorithms/tree/master/algorithms/tests
 
 """
@@ -21,9 +23,14 @@ class Cell(object):
         return self.f < other.f
 
 class AStar(object):
-    def __init__(self):
+    def __init__(self, robot: cozmo.robot.Robot, pos):
         self.opened = []
         heapq.heapify(self.opened)
+
+        self.currentPos = pos
+        self.nextPos = [1, 1, 0]
+
+        self.robot = robot
 
         self.closed = set()
 
@@ -129,7 +136,8 @@ class AStar(object):
         self.init_grid(9, 9, walls, start, end)
 
         path = self.solve()
-        self.pathToActions(path)
+        actions = self.pathToActions(path)
+        return actions
 
     """
     Author: Ronnie Smith
@@ -139,7 +147,7 @@ class AStar(object):
     def pathToActions(self, path):
         newPath = []
         j = 0
-        for i in range(0, len(path)):
+        for i in range(len(path)):
             if i % 2 == 0:
                 newPath.append(path[i])
                 j = j + 1
@@ -163,6 +171,8 @@ class AStar(object):
         print('Action path:', newPath)
         print('Actions:', actions)
         self.printPath(path)
+
+        return actions
 
     """
     Author: Ronnie Smith
@@ -200,7 +210,97 @@ class AStar(object):
 
         return isOnPath
 
-print('Navigating from:', (0, 0), 'to', (6, 4))
-print('')
-a = AStar()
-a.initLegoWorld((0, 0), (6, 4))
+    """
+    Author: Ronnie Smith
+    
+    Moves the robot and saves the new position.
+    """
+    def move(self, direction):
+        success = 0
+
+        if direction == "up":
+            self.nextPos[1] = self.currentPos[1] - 2
+            self.face("north")
+            success = 1
+        elif direction == "down":
+            self.nextPos[1] = self.currentPos[1] + 2
+            self.face("south")
+            success = 1
+        elif direction == "left":
+            self.nextPos[0] = self.currentPos[0] + 2
+            self.face("west")
+            success = 1
+        elif direction == "right":
+            self.nextPos[0] = self.currentPos[0] + 2
+            self.face("east")
+            success = 1
+        else:
+            print('[GRID] Unable to execute navigation command: invalid direction provided.')
+
+        #self.currentPos = self.nextPos
+        self.currentPos[0] = self.nextPos[0]
+        self.currentPos[1] = self.nextPos[1]
+
+        if success == 0:
+            print('[GRID] Unable to execute navigation command: new grid position occupied.')
+        elif success == 1:
+            self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
+
+    """
+    Author: N/A
+    
+    Turns the robot and adjusts the stored rotation.
+    """
+    def turn(self, rotation):
+        self.nextPos[2] = self.currentPos[2] + rotation
+
+        self.robot.turn_in_place(rotation)
+
+        self.currentPos = self.nextPos
+
+    """
+    Author: Ronnie Smith
+    
+    Turns the robot to face a given direction, based on current heading.
+    """
+    def face(self, direction):
+        currentHeading = self.currentPos[2]
+
+        if direction == "north":
+            if currentHeading == 270:
+                headingDifference = -90
+            else:
+                headingDifference = (currentHeading - 0) * -1.0
+            self.currentPos[2] = 0
+        elif direction == "south":
+            if currentHeading == 90:
+                headingDifference = -90
+            else:
+                headingDifference = (currentHeading - 180) * -1.0
+            self.currentPos[2] = 180
+        elif direction == "east":
+            if currentHeading == 180:
+                headingDifference = 90
+            else:
+                headingDifference = (currentHeading - 90) * -1.0
+            self.currentPos[2] = 90
+        elif direction == "west":
+            if currentHeading == 0:
+                headingDifference = 90
+            else:
+                headingDifference = (currentHeading - 270) * -1.0
+            self.currentPos[2] = 270
+        else:
+            print("[GRID] Invalid direction given to face(self, direction)")
+
+        print('Turning', headingDifference, 'to face', direction)
+        self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
+
+    """
+    Author: Ronnie Smith
+    
+    Returns current position of robot.
+    """
+    def getPos(self):
+        pos = self.currentPos
+        return pos

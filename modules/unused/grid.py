@@ -4,6 +4,7 @@ import cozmo
 from cozmo.util import degrees, distance_mm, speed_mmps
 import math
 import numpy as np
+import constants
 
 class Grid:
     def __init__(self, robot: cozmo.robot.Robot):
@@ -42,6 +43,7 @@ class Grid:
         self.locGrid[1][1] = 2
         self.currentPos[0] = 1
         self.currentPos[1] = 1
+        self.currentPos[2] = 180
 
     def move(self, direction):
         self.clearRobotPos()
@@ -70,7 +72,9 @@ class Grid:
         else:
             print('[GRID] Unable to execute navigation command: invalid direction provided.')
 
-        self.currentPos = self.nextPos
+        #self.currentPos = self.nextPos
+        self.currentPos[0] = self.nextPos[0]
+        self.currentPos[1] = self.nextPos[1]
         self.setRobotPos()
 
         if success == 0:
@@ -89,20 +93,33 @@ class Grid:
         currentHeading = self.currentPos[2]
 
         if direction == "north":
-            headingDifference = (currentHeading - 0) * -1.0
+            if currentHeading == 270:
+                headingDifference = -90
+            else:
+                headingDifference = (currentHeading - 0) * -1.0
             self.currentPos[2] = 0
         elif direction == "south":
-            headingDifference = (currentHeading - 180) * -1.0
+            if currentHeading == 90:
+                headingDifference = -90
+            else:
+                headingDifference = (currentHeading - 180) * -1.0
             self.currentPos[2] = 180
         elif direction == "east":
-            headingDifference = (currentHeading - 90) * -1.0
+            if currentHeading == 180:
+                headingDifference = 90
+            else:
+                headingDifference = (currentHeading - 90) * -1.0
             self.currentPos[2] = 90
         elif direction == "west":
-            headingDifference = (currentHeading - 270) * -1.0
+            if currentHeading == 0:
+                headingDifference = 90
+            else:
+                headingDifference = (currentHeading - 270) * -1.0
             self.currentPos[2] = 270
         else:
             print("[GRID] Invalid direction given to face(self, direction)")
 
+        print(currentHeading, direction, headingDifference)
         self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
 
     def clearRobotPos(self):

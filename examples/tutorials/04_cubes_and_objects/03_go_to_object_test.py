@@ -56,5 +56,4 @@ def go_to_object_test(robot: cozmo.robot.Robot):
         print("Completed action: result = %s" % action)
         print("Done.")
 
-
 cozmo.run_program(go_to_object_test)
