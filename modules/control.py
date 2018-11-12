@@ -7,12 +7,24 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     step_1(robot)
 
+# ROBOT 1 finds the cube
 def step_1(robot):
     currentPos = [0, 1, 180]
     s = Search(robot, currentPos)
     found = s.search()
 
+# ROBOT 1 returns to face ROBOT 2
+def step_2(robot):
+    pass
+
+# ROBOT 1 and ROBOT 2 engage in position information transfer
 def step_3(robot):
+    pass
+
+# ROBOT 1 and ROBOT 2 navigate to:
+#    + ROBOT 1: position to watch robot 2 pick up the cube
+#    + ROBOT 2: position to pick up the cube
+def step_4(robot):
     currentPos = [0, 0, 180]
     a = AStar(robot, currentPos)
 
