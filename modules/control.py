@@ -5,17 +5,48 @@ from cozmo.util import degrees, distance_mm, speed_mmps
 
 def cozmo_program(robot: cozmo.robot.Robot):
 
-    step_1(robot)
+    # We will check whether each step is successful
+    res = False
+
+    # Step 1
+    # currentPos = [0, 3, 180]
+    # res, currentPos = step_1(robot, currentPos) # currentPos = [3, 2, 90]
+    # if res == False:
+    #     print('[ERROR][STEP 1] Could not find cube on search path.')
+
+    # Step 2
+    currentPos = [6, 4, 90] # USE ONLY IF STEP 1 IS DISABLED
+    res, currentPos = step_2(robot, currentPos)
+    if res == False:
+        print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
+    print(currentPos)
+    
 
 # ROBOT 1 finds the cube
-def step_1(robot):
-    currentPos = [0, 1, 180]
+def step_1(robot, currentPos):
     s = Search(robot, currentPos)
-    found = s.search()
+    found, currentPos = s.search()
+    
+    if found == True:
+        return True, currentPos
+    else:
+        return False, currentPos
 
 # ROBOT 1 returns to face ROBOT 2
-def step_2(robot):
-    pass
+def step_2(robot, currentPos):
+    a = AStar(robot, currentPos)
+
+    print('Navigating from:', (6, 4), 'to', (4, 6))
+    print('')
+    
+    path = a.initLegoWorld((6, 4), (4, 6))
+    for i in range(len(path)):
+        a.move(path[i])
+
+    a.face("north")
+    currentPos = a.getPos()
+
+    return True, currentPos
 
 # ROBOT 1 and ROBOT 2 engage in position information transfer
 def step_3(robot):

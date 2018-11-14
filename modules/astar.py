@@ -130,9 +130,14 @@ class AStar(object):
     """
 
     def initLegoWorld(self, start, end):
-        walls = ((0, 5), (1, 1), (1, 3), (1, 5), (1, 7), (2, 7), (3, 1), (3, 3), (3, 5), (3, 6), (3, 7), (4, 3),
-                (5, 1), (5, 2), (5, 3), (5, 5), (5, 7), (5, 8), (6, 1), (6, 2), (6, 3), (6, 7), (6, 8), (7, 1),
-                (7, 2), (7, 3), (7, 4), (7, 5), (7, 7), (7, 8), (8, 7), (8, 8))
+        # walls = ((0, 5), (1, 1), (1, 3), (1, 5), (1, 7), (2, 7), (3, 1), (3, 3), (3, 5), (3, 6), (3, 7), (4, 3),
+        #         (5, 1), (5, 2), (5, 3), (5, 5), (5, 7), (5, 8), (6, 1), (6, 2), (6, 3), (6, 7), (6, 8), (7, 1),
+        #         (7, 2), (7, 3), (7, 4), (7, 5), (7, 7), (7, 8), (8, 7), (8, 8))
+
+        walls = ((0, 0), (0, 1), (0, 7), (0, 8), (1, 0), (1, 1), (1, 3), (1, 5), (1, 7), (1, 8), (2, 3), (2, 7), (2, 8), 
+                (3, 1), (3, 3), (3, 4), (3, 5), (3, 7), (3, 8), (5, 1), (5, 3), (5, 5), (5, 6), (5, 7), (6, 1), (7, 1),
+                (7, 2), (7, 3), (7, 5), (7, 6), (7, 7))
+
         self.init_grid(9, 9, walls, start, end)
 
         path = self.solve()
@@ -169,6 +174,7 @@ class AStar(object):
 
         print('Full path:', path)
         print('Action path:', newPath)
+        print(self.currentPos)
         print('Actions:', actions)
         self.printPath(path)
 
@@ -218,28 +224,37 @@ class AStar(object):
     def move(self, direction):
         success = 0
 
+        yMod = False
+        xMod = False
+
         if direction == "up":
-            self.nextPos[1] = self.currentPos[1] - 2
+            self.nextPos[0] = self.currentPos[0] - 2
             self.face("north")
             success = 1
+            yMod = True
         elif direction == "down":
-            self.nextPos[1] = self.currentPos[1] + 2
+            self.nextPos[0] = self.currentPos[0] + 2
             self.face("south")
             success = 1
+            yMod = True
         elif direction == "left":
-            self.nextPos[0] = self.currentPos[0] + 2
+            self.nextPos[1] = self.currentPos[1] - 2
             self.face("west")
             success = 1
+            xMod = True
         elif direction == "right":
-            self.nextPos[0] = self.currentPos[0] + 2
+            self.nextPos[1] = self.currentPos[1] + 2
             self.face("east")
             success = 1
+            xMod = True
         else:
             print('[GRID] Unable to execute navigation command: invalid direction provided.')
 
         #self.currentPos = self.nextPos
-        self.currentPos[0] = self.nextPos[0]
-        self.currentPos[1] = self.nextPos[1]
+        if yMod == True:
+            self.currentPos[0] = self.nextPos[0]
+        if xMod == True:
+            self.currentPos[1] = self.nextPos[1]
 
         if success == 0:
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
@@ -270,7 +285,7 @@ class AStar(object):
             if currentHeading == 270:
                 headingDifference = -90
             else:
-                headingDifference = (currentHeading - 0) * -1.0
+                headingDifference = (currentHeading - 0) * 1.0
             self.currentPos[2] = 0
         elif direction == "south":
             if currentHeading == 90:
@@ -281,6 +296,8 @@ class AStar(object):
         elif direction == "east":
             if currentHeading == 180:
                 headingDifference = 90
+            elif currentHeading == 0:
+                headingDifference = -90
             else:
                 headingDifference = (currentHeading - 90) * -1.0
             self.currentPos[2] = 90

@@ -14,33 +14,34 @@ class Search(object):
     def search(self):
         actions = ["down", "down", "left", "down", "down", "right", "right", "up"]
 
-        found = 0
+        found = False
         for i in range(len(actions)):
             self.move(actions[i])
             found = self.searchOnSpot()
-            if found == 1:
+            if found == True:
                 break
 
         print('Cube detected whilst robot at position x:', self.currentPos[0], 'y:', self.currentPos[1])
 
-        return found
+        return found, self.currentPos
 
     def searchOnSpot(self):
-        found = 0
+        found = False
         for i in range(0, 4):
             self.robot.turn_in_place(degrees(90)).wait_for_completed()
 
             cube = None
 
             try:
-                cube = self.robot.world.wait_for_observed_light_cube(timeout=5)
+                cube = self.robot.world.wait_for_observed_light_cube(timeout=2)
                 print("Object found!", cube)
 
             except asyncio.TimeoutError:
                 print('No object detected.')
 
             if cube != None:
-                found = 1
+                found = True
+                break
 
         return found
 
