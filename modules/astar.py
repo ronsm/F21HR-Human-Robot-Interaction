@@ -5,7 +5,8 @@ import cozmo
 
 """
 
-The A* algorithm here is based on the one implemented by Lauren Luce. Unless otherwise stated, functions in the AStar class are his.
+The A* algorithm here is based on the one implemented by Lauren Luce. Functions that do not have an author indicated should
+be assumed to have originated from the source below.
 Source: https://github.com/laurentluce/python-algorithms/tree/master/algorithms/tests
 
 """
@@ -291,7 +292,7 @@ class AStar(object):
             if currentHeading == 90:
                 headingDifference = -90
             else:
-                headingDifference = (currentHeading - 180) * -1.0
+                headingDifference = (currentHeading - 180) * 1.0
             self.currentPos[2] = 180
         elif direction == "east":
             if currentHeading == 180:

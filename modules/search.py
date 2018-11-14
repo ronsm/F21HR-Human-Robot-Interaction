@@ -11,6 +11,11 @@ class Search(object):
         self.currentPos = pos
         self.nextPos = [1, 1, 0]
 
+    """
+    Author: Ronnie Smith
+    
+    Follows a path around the map to search for the object.
+    """
     def search(self):
         actions = ["down", "down", "left", "down", "down", "right", "right", "up"]
 
@@ -25,6 +30,11 @@ class Search(object):
 
         return found, self.currentPos
 
+    """
+    Author: Ronnie Smith
+    
+    Turns the robot on the spot to search for a cube in each direction along the map.
+    """
     def searchOnSpot(self):
         found = False
         for i in range(0, 4):
@@ -45,6 +55,11 @@ class Search(object):
 
         return found
 
+    """
+    Author: Ronnie Smith
+    
+    Moves the robot and saves the new position.
+    """
     def move(self, direction):
         success = 0
 
@@ -75,7 +90,12 @@ class Search(object):
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
         elif success == 1:
             self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
-
+            
+    """
+    Author: Ronnie Smith
+    
+    Turns the robot to face a given direction, based on current heading.
+    """
     def face(self, direction):
         currentHeading = self.currentPos[2]
 

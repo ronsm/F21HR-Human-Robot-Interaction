@@ -1,5 +1,6 @@
 from astar import AStar
 from search import Search
+from interact import Interact
 import cozmo
 from cozmo.util import degrees, distance_mm, speed_mmps
 
@@ -15,11 +16,27 @@ def cozmo_program(robot: cozmo.robot.Robot):
     #     print('[ERROR][STEP 1] Could not find cube on search path.')
 
     # Step 2
-    currentPos = [6, 4, 90] # USE ONLY IF STEP 1 IS DISABLED
-    res, currentPos = step_2(robot, currentPos)
-    if res == False:
-        print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
-    print(currentPos)
+    # currentPos = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    # res, currentPos = step_2(robot, currentPos)
+    # if res == False:
+    #     print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
+    # print(currentPos)
+
+    # Step 3
+
+    # Step 4
+    # currentPos = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    # res, currentPos = step_4(robot, currentPos)
+    # if res == False:
+    #     print('[ERROR][STEP 4] Unable to move Robot 1 to observation position.')
+    # print(currentPos)
+
+    # Step 5
+
+    # Step 6
+
+    # Step 7
+    step_7(robot)
     
 
 # ROBOT 1 finds the cube
@@ -55,26 +72,43 @@ def step_3(robot):
 # ROBOT 1 and ROBOT 2 navigate to:
 #    + ROBOT 1: position to watch robot 2 pick up the cube
 #    + ROBOT 2: position to pick up the cube
-def step_4(robot):
-    currentPos = [0, 0, 180]
+def step_4(robot, currentPos):
     a = AStar(robot, currentPos)
 
-    print('Navigating from:', (0, 0), 'to', (2, 2))
+    print('Navigating from:', (4, 6), 'to', (8, 5))
     print('')
     
-    path = a.initLegoWorld((0, 0), (2, 2))
+    path = a.initLegoWorld((4, 6), (8, 4))
     for i in range(len(path)):
         a.move(path[i])
 
+    a.face("north")
     currentPos = a.getPos()
-    a = AStar(robot, currentPos)
 
-    print('')
-    print('Navigating from:', (2, 2), 'to', (0, 0))
-    print('')
+    return True, currentPos
+    # a = AStar(robot, currentPos)
 
-    path = a.initLegoWorld((2, 2), (0, 0))
-    for i in range(len(path)):
-        a.move(path[i])
+    # print('')
+    # print('Navigating from:', (2, 2), 'to', (0, 0))
+    # print('')
 
-cozmo.run_program(cozmo_program)
+    # path = a.initLegoWorld((2, 2), (0, 0))
+    # for i in range(len(path)):
+    #     a.move(path[i])
+
+# ROBOT 2 picks up the cube
+def step_5(robot, currentPos):
+    pass
+
+# ROBOT 2 brings the cube to place on map where person can be seen
+# ROBOT 1 follows ROBOT 2 after a pause
+def step_6(robot, currentPos):
+    pass
+
+# ROBOT 2 puts down the cube
+# ROBOT 2 then searches for person
+def step_7(robot):
+    interact = Interact(robot)
+    interact.detectPerson()
+
+cozmo.run_program(cozmo_program, use_viewer=True)
