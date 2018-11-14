@@ -1,6 +1,7 @@
 from astar import AStar
 from search import Search
 from interact import Interact
+from comms import Comms
 import cozmo
 from cozmo.util import degrees, distance_mm, speed_mmps
 
@@ -23,6 +24,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # print(currentPos)
 
     # Step 3
+    step_3(robot)
 
     # Step 4
     # currentPos = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
@@ -36,7 +38,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # Step 6
 
     # Step 7
-    step_7(robot)
+    # step_7(robot)
     
 
 # ROBOT 1 finds the cube
@@ -67,7 +69,9 @@ def step_2(robot, currentPos):
 
 # ROBOT 1 and ROBOT 2 engage in position information transfer
 def step_3(robot):
-    pass
+    comms = Comms(robot)
+    #comms.display(1)
+    comms.read()
 
 # ROBOT 1 and ROBOT 2 navigate to:
 #    + ROBOT 1: position to watch robot 2 pick up the cube
