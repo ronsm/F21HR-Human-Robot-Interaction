@@ -29,7 +29,7 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     # print(currentPos)
 
     # Step 3]
-    currentPos = [6, 4, 90]
+    currentPos = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
     await step_3(robot1, robot2, currentPos)
 
     # Step 4
@@ -83,9 +83,45 @@ async def step_3(robot1, robot2, currentPos):
     y = currentPos[0]
     x = currentPos[1]
 
-    comms1.display(y, x)
-    await comms2.read()
+    if y == 0:
+        y = 0
+    elif y == 2:
+        y = 1
+    elif y == 4:
+        y = 2
+    elif y == 6:
+        y = 3
+    elif y == 8:
+      y = 4
+
+    if x == 0:
+        x = 0
+    elif x == 2:
+        x = 1
+    elif x == 4:
+        x = 2
+    elif x == 6:
+        x = 3
+    elif x == 8:
+      x = 4
+
+    comms1.display(y)
+    res = await comms2.read()
     comms1.clear(1)
+
+    if res == -1:
+        print('[ERROR][CONTROL] Robot 2 was unable to detect Robot 1 coordinate Y. ')
+    
+    await asyncio.sleep(2)
+
+    comms1.display(x)
+    res = await comms2.read()
+    comms1.clear(1)
+
+    if res == -1:
+        print('[ERROR][CONTROL] Robot 2 was unable to detect Robot 1 coordinate X. ')
+
+    await asyncio.sleep(1)
 
 # ROBOT 1 and ROBOT 2 navigate to:
 #    + ROBOT 1: position to watch robot 2 pick up the cube

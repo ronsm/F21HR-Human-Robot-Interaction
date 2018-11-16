@@ -66,7 +66,7 @@ class Comms(object):
         await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType08, CustomObjectMarkers.Diamonds3, 14, 8, 13.5, 6.35, True)
 
     def display(self, select):
-        duration = 15 # seconds
+        duration = 15
         image = self.face_images[select]
 
         self.robot.display_oled_face_image(image, duration * 1000.0)
@@ -91,4 +91,19 @@ class Comms(object):
             found = True
             print(found)
 
-    def 
+        res = -1
+        if found == True:
+            if str(object[0].object_type) == "CustomObjectTypes.CustomType00":
+                res = 0
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType01":
+                res = 1
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType02":
+                res = 2
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType03":
+                res = 3
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType04":
+                res = 4
+
+        print('[COMMS] Detected marker:', res)
+
+        return res
