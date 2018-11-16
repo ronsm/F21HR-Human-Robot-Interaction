@@ -14,6 +14,9 @@ class Comms(object):
 
         self.robot = robot
 
+        self.face_images = []
+
+    async def load(self):
         current_directory = os.path.dirname(os.path.realpath(__file__))
         im1_png = os.path.join(current_directory, "images", "1.png")
         im2_png = os.path.join(current_directory, "images", "2.png")
@@ -35,7 +38,6 @@ class Comms(object):
                     (im8_png, Image.BICUBIC),
                     (im9_png, Image.BICUBIC)]
 
-        self.face_images = []
         for image_name, resampling_mode in image_settings:
             image = Image.open(image_name)
 
@@ -52,29 +54,41 @@ class Comms(object):
         self.x = None
         self.y = None
 
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType00, CustomObjectMarkers.Circles2, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType01, CustomObjectMarkers.Circles3, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType02, CustomObjectMarkers.Circles4, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType03, CustomObjectMarkers.Circles5, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType04, CustomObjectMarkers.Triangles2, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType05, CustomObjectMarkers.Triangles3, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType06, CustomObjectMarkers.Triangles4, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType07, CustomObjectMarkers.Triangles5, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType08, CustomObjectMarkers.Diamonds2, 14, 8, 13.5, 6.35, True)
-        self.robot.world.define_custom_wall(CustomObjectTypes.CustomType08, CustomObjectMarkers.Diamonds3, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType00, CustomObjectMarkers.Circles2, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType01, CustomObjectMarkers.Circles3, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType02, CustomObjectMarkers.Circles4, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType03, CustomObjectMarkers.Circles5, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType04, CustomObjectMarkers.Triangles2, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType05, CustomObjectMarkers.Triangles3, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType06, CustomObjectMarkers.Triangles4, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType07, CustomObjectMarkers.Triangles5, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType08, CustomObjectMarkers.Diamonds2, 14, 8, 13.5, 6.35, True)
+        await self.robot.world.define_custom_wall(CustomObjectTypes.CustomType08, CustomObjectMarkers.Diamonds3, 14, 8, 13.5, 6.35, True)
 
     def display(self, select):
-        duration = 5 # seconds
+        duration = 15 # seconds
         image = self.face_images[select]
 
         self.robot.display_oled_face_image(image, duration * 1000.0)
-        time.sleep(duration)
 
-    def handleObject(self, event, **kw):
-        if isinstance(event.obj, CustomObject):
-            self.x = (self.object_type_to_numberx[event.obj.object_type])
-        print(self.x)
+    def clear(self, select):
+        duration = 0.1
+        image = self.face_images[select]
 
-    def read(self):
-        self.robot.add_event_handler(cozmo.objects.EvtObjectAppeared, self.handleObject)
-        time.sleep(10)
+        self.robot.display_oled_face_image(image, duration * 1000.0)
+
+    async def read(self):
+        object = None
+
+        try:
+            object = await self.robot.world.wait_until_observe_num_objects(1, timeout=10)
+            print("Object found!", object)
+
+        except asyncio.TimeoutError:
+            print('No object detected.')
+
+        if object != None:
+            found = True
+            print(found)
+
+    def 

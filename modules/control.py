@@ -3,9 +3,14 @@ from search import Search
 from interact import Interact
 from comms import Comms
 import cozmo
+import asyncio
+import sys
 from cozmo.util import degrees, distance_mm, speed_mmps
 
-def cozmo_program(robot: cozmo.robot.Robot):
+async def cozmo_program(sdk_conn1, sdk_conn2):
+
+    robot1 = await sdk_conn1.wait_for_robot()
+    robot2 = await sdk_conn2.wait_for_robot()
 
     # We will check whether each step is successful
     res = False
@@ -23,8 +28,9 @@ def cozmo_program(robot: cozmo.robot.Robot):
     #     print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
     # print(currentPos)
 
-    # Step 3
-    step_3(robot)
+    # Step 3]
+    currentPos = [6, 4, 90]
+    await step_3(robot1, robot2, currentPos)
 
     # Step 4
     # currentPos = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
@@ -68,10 +74,18 @@ def step_2(robot, currentPos):
     return True, currentPos
 
 # ROBOT 1 and ROBOT 2 engage in position information transfer
-def step_3(robot):
-    comms = Comms(robot)
-    #comms.display(1)
-    comms.read()
+async def step_3(robot1, robot2, currentPos):
+    comms1 = Comms(robot1)
+    comms2 = Comms(robot2)
+    await comms1.load()
+    await comms2.load()
+
+    y = currentPos[0]
+    x = currentPos[1]
+
+    comms1.display(y, x)
+    await comms2.read()
+    comms1.clear(1)
 
 # ROBOT 1 and ROBOT 2 navigate to:
 #    + ROBOT 1: position to watch robot 2 pick up the cube
@@ -115,4 +129,19 @@ def step_7(robot):
     interact = Interact(robot)
     interact.detectPerson()
 
-cozmo.run_program(cozmo_program, use_viewer=True)
+#cozmo.run_program(cozmo_program, use_viewer=True)
+
+if __name__ == '__main__':
+    cozmo.setup_basic_logging()
+    loop = asyncio.get_event_loop()
+
+    try:
+        conn1 = cozmo.connect_on_loop(loop)
+        conn2 = cozmo.connect_on_loop(loop)
+    except cozmo.ConnectionError as e:
+        sys.exit("A connection error occurred: %s" % e)
+
+    #cozmo.run_program(cozmo_program(conn1, conn2), use_viewer=True)
+
+    # Run a coroutine controlling both connections
+    loop.run_until_complete(cozmo_program(conn1, conn2))
