@@ -1,5 +1,6 @@
 from __future__ import print_function
 import heapq
+import asyncio
 from cozmo.util import degrees, distance_mm, speed_mmps
 import cozmo
 
@@ -222,7 +223,7 @@ class AStar(object):
     
     Moves the robot and saves the new position.
     """
-    def move(self, direction):
+    async def move(self, direction):
         success = 0
 
         yMod = False
@@ -230,22 +231,22 @@ class AStar(object):
 
         if direction == "up":
             self.nextPos[0] = self.currentPos[0] - 2
-            self.face("north")
+            await self.face("north")
             success = 1
             yMod = True
         elif direction == "down":
             self.nextPos[0] = self.currentPos[0] + 2
-            self.face("south")
+            await self.face("south")
             success = 1
             yMod = True
         elif direction == "left":
             self.nextPos[1] = self.currentPos[1] - 2
-            self.face("west")
+            await self.face("west")
             success = 1
             xMod = True
         elif direction == "right":
             self.nextPos[1] = self.currentPos[1] + 2
-            self.face("east")
+            await self.face("east")
             success = 1
             xMod = True
         else:
@@ -260,17 +261,17 @@ class AStar(object):
         if success == 0:
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
         elif success == 1:
-            self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
+            await self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
 
     """
     Author: N/A
     
     Turns the robot and adjusts the stored rotation.
     """
-    def turn(self, rotation):
+    async def turn(self, rotation):
         self.nextPos[2] = self.currentPos[2] + rotation
 
-        self.robot.turn_in_place(rotation)
+        await self.robot.turn_in_place(rotation).wait_for_completed()
 
         self.currentPos = self.nextPos
 
@@ -279,7 +280,7 @@ class AStar(object):
     
     Turns the robot to face a given direction, based on current heading.
     """
-    def face(self, direction):
+    async def face(self, direction):
         currentHeading = self.currentPos[2]
 
         if direction == "north":
@@ -305,6 +306,8 @@ class AStar(object):
         elif direction == "west":
             if currentHeading == 0:
                 headingDifference = 90
+            elif currentHeading == 180:
+                headingDifference = -90
             else:
                 headingDifference = (currentHeading - 270) * -1.0
             self.currentPos[2] = 270
@@ -312,7 +315,7 @@ class AStar(object):
             print("[GRID] Invalid direction given to face(self, direction)")
 
         print('Turning', headingDifference, 'to face', direction)
-        self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
+        await self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
 
     """
     Author: Ronnie Smith

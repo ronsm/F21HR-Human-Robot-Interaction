@@ -71,9 +71,9 @@ class Comms(object):
 
         self.robot.display_oled_face_image(image, duration * 1000.0)
 
-    def clear(self, select):
-        duration = 0.1
-        image = self.face_images[select]
+    def clear(self):
+        duration = 0.2
+        image = self.face_images[0]
 
         self.robot.display_oled_face_image(image, duration * 1000.0)
 
@@ -96,13 +96,13 @@ class Comms(object):
             if str(object[0].object_type) == "CustomObjectTypes.CustomType00":
                 res = 0
             elif str(object[0].object_type) == "CustomObjectTypes.CustomType01":
-                res = 1
-            elif str(object[0].object_type) == "CustomObjectTypes.CustomType02":
                 res = 2
-            elif str(object[0].object_type) == "CustomObjectTypes.CustomType03":
-                res = 3
-            elif str(object[0].object_type) == "CustomObjectTypes.CustomType04":
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType02":
                 res = 4
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType03":
+                res = 6
+            elif str(object[0].object_type) == "CustomObjectTypes.CustomType04":
+                res = 7
 
         print('[COMMS] Detected marker:', res)
 

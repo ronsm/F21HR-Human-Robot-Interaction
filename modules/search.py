@@ -16,13 +16,13 @@ class Search(object):
     
     Follows a path around the map to search for the object.
     """
-    def search(self):
+    async def search(self):
         actions = ["down", "down", "left", "down", "down", "right", "right", "up"]
 
         found = False
         for i in range(len(actions)):
-            self.move(actions[i])
-            found = self.searchOnSpot()
+            await self.move(actions[i])
+            found = await self.searchOnSpot()
             if found == True:
                 break
 
@@ -35,15 +35,15 @@ class Search(object):
     
     Turns the robot on the spot to search for a cube in each direction along the map.
     """
-    def searchOnSpot(self):
+    async def searchOnSpot(self):
         found = False
         for i in range(0, 4):
-            self.robot.turn_in_place(degrees(90)).wait_for_completed()
+            await self.robot.turn_in_place(degrees(90)).wait_for_completed()
 
             cube = None
 
             try:
-                cube = self.robot.world.wait_for_observed_light_cube(timeout=2)
+                cube = await self.robot.world.wait_for_observed_light_cube(timeout=2)
                 print("Object found!", cube)
 
             except asyncio.TimeoutError:
@@ -60,7 +60,7 @@ class Search(object):
     
     Moves the robot and saves the new position.
     """
-    def move(self, direction):
+    async def move(self, direction):
         success = 0
 
         if direction == "up":
@@ -89,14 +89,14 @@ class Search(object):
         if success == 0:
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
         elif success == 1:
-            self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
+            await self.robot.drive_straight(distance_mm(250), speed_mmps(50)).wait_for_completed()
             
     """
     Author: Ronnie Smith
     
     Turns the robot to face a given direction, based on current heading.
     """
-    def face(self, direction):
+    async def face(self, direction):
         currentHeading = self.currentPos[2]
 
         if direction == "north":
@@ -127,4 +127,4 @@ class Search(object):
             print("[GRID] Invalid direction given to face(self, direction)")
 
         print('Turning', headingDifference, 'to face', direction)
-        self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
+        await self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()

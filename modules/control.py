@@ -16,28 +16,33 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     res = False
 
     # Step 1
-    # currentPos = [0, 3, 180]
-    # res, currentPos = step_1(robot, currentPos) # currentPos = [3, 2, 90]
+    # currentPos1 = [0, 3, 180]
+    # res, currentPos1 = await step_1(robot1, currentPos1) # currentPos = [3, 2, 90]
+    # destPos = currentPos1
     # if res == False:
     #     print('[ERROR][STEP 1] Could not find cube on search path.')
 
     # Step 2
-    # currentPos = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, currentPos = step_2(robot, currentPos)
+    # currentPos1 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    # res, currentPos1 = await step_2(robot1, currentPos1)
     # if res == False:
     #     print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
-    # print(currentPos)
+    # print(currentPos1)
 
     # Step 3]
-    currentPos = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    await step_3(robot1, robot2, currentPos)
+    destPos = [6, 4, 90]     # USE ONLY IF PREVIOUS STEP IS DISABLED
+    currentPos1 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    res, destPos = await step_3(robot1, robot2, destPos)
+    if res == False:
+        print('[ERROR][STEP 3] Robot syncronisation process failed.')
 
     # Step 4
-    # currentPos = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, currentPos = step_4(robot, currentPos)
-    # if res == False:
-    #     print('[ERROR][STEP 4] Unable to move Robot 1 to observation position.')
-    # print(currentPos)
+    currentPos1 = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    currentPos2 = [2, 6, 180]
+    res, currentPos1, currentPos2 = await step_4(robot1, robot2, currentPos1, currentPos2, destPos)
+    if res == False:
+        print('[ERROR][STEP 4] Unable to move Robot 1 to observation position.')
+    print(currentPos1, currentPos2)
 
     # Step 5
 
@@ -48,9 +53,9 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     
 
 # ROBOT 1 finds the cube
-def step_1(robot, currentPos):
+async def step_1(robot, currentPos):
     s = Search(robot, currentPos)
-    found, currentPos = s.search()
+    found, currentPos = await s.search()
     
     if found == True:
         return True, currentPos
@@ -58,7 +63,7 @@ def step_1(robot, currentPos):
         return False, currentPos
 
 # ROBOT 1 returns to face ROBOT 2
-def step_2(robot, currentPos):
+async def step_2(robot, currentPos):
     a = AStar(robot, currentPos)
 
     print('Navigating from:', (6, 4), 'to', (4, 6))
@@ -66,22 +71,24 @@ def step_2(robot, currentPos):
     
     path = a.initLegoWorld((6, 4), (4, 6))
     for i in range(len(path)):
-        a.move(path[i])
+        await a.move(path[i])
 
-    a.face("north")
+    await a.face("north")
     currentPos = a.getPos()
 
     return True, currentPos
 
 # ROBOT 1 and ROBOT 2 engage in position information transfer
-async def step_3(robot1, robot2, currentPos):
+async def step_3(robot1, robot2, destPos):
+    res = False
+
     comms1 = Comms(robot1)
     comms2 = Comms(robot2)
     await comms1.load()
     await comms2.load()
 
-    y = currentPos[0]
-    x = currentPos[1]
+    y = destPos[0]
+    x = destPos[1]
 
     if y == 0:
         y = 0
@@ -105,9 +112,14 @@ async def step_3(robot1, robot2, currentPos):
     elif x == 8:
       x = 4
 
+    destPos = [0, 0]
+
+    print('y', y, 'x', x)
+
     comms1.display(y)
     res = await comms2.read()
-    comms1.clear(1)
+    destPos[0] = res
+    comms1.clear()
 
     if res == -1:
         print('[ERROR][CONTROL] Robot 2 was unable to detect Robot 1 coordinate Y. ')
@@ -116,39 +128,49 @@ async def step_3(robot1, robot2, currentPos):
 
     comms1.display(x)
     res = await comms2.read()
-    comms1.clear(1)
+    destPos[1] = res
+    comms1.clear()
 
     if res == -1:
         print('[ERROR][CONTROL] Robot 2 was unable to detect Robot 1 coordinate X. ')
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
+
+    return True, destPos
 
 # ROBOT 1 and ROBOT 2 navigate to:
 #    + ROBOT 1: position to watch robot 2 pick up the cube
 #    + ROBOT 2: position to pick up the cube
-def step_4(robot, currentPos):
-    a = AStar(robot, currentPos)
+async def step_4(robot1, robot2, currentPos1, currentPos2, destPos):
+    # ROBOT 1
+    a = AStar(robot1, currentPos1)
 
-    print('Navigating from:', (4, 6), 'to', (8, 5))
+    print('Navigating from:', (4, 6), 'to', (8, 4))
     print('')
     
     path = a.initLegoWorld((4, 6), (8, 4))
     for i in range(len(path)):
-        a.move(path[i])
+        await a.move(path[i])
 
-    a.face("north")
-    currentPos = a.getPos()
+    await a.face("north")
+    currentPos1 = a.getPos()
 
-    return True, currentPos
-    # a = AStar(robot, currentPos)
+    # ROBOT 2
+    a = AStar(robot2, currentPos2)
 
-    # print('')
-    # print('Navigating from:', (2, 2), 'to', (0, 0))
-    # print('')
+    print('Navigating from:', (2, 6), 'to', (6, 4))
+    print('')
+    
+    dest = (destPos[0], destPos[1])
 
-    # path = a.initLegoWorld((2, 2), (0, 0))
-    # for i in range(len(path)):
-    #     a.move(path[i])
+    path = a.initLegoWorld((2, 6), dest)
+    for i in range(len(path)):
+        await a.move(path[i])
+
+    await a.face("east")
+    currentPos1 = a.getPos()
+
+    return True, currentPos1, currentPos2
 
 # ROBOT 2 picks up the cube
 def step_5(robot, currentPos):
