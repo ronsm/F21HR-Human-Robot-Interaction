@@ -315,7 +315,7 @@ class AStar(object):
             print("[GRID] Invalid direction given to face(self, direction)")
 
         print('Turning', headingDifference, 'to face', direction)
-        await self.robot.turn_in_place(degrees(headingDifference), in_parallel=False, num_retries=0, speed=degrees(45), accel=None, angle_tolerance=degrees(2), is_absolute=False).wait_for_completed()
+        await self.robot.turn_in_place(degrees(headingDifference), in_parallel=False, num_retries=3, speed=degrees(70), accel=None, angle_tolerance=degrees(2), is_absolute=False).wait_for_completed()
 
     """
     Author: Ronnie Smith

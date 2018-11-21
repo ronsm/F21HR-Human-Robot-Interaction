@@ -1,5 +1,6 @@
 from __future__ import print_function
 from cozmo.util import degrees, distance_mm, speed_mmps
+from cozmo.objects import LightCube1Id
 import asyncio
 import cozmo
 import time
@@ -9,6 +10,13 @@ class Interact(object):
         print('[INTERACT] I am the interaction controller.')
 
         self.robot = robot
+        self.cube = robot.world.get_light_cube(LightCube1Id)
+
+        if self.cube is not None:
+            self.cube.set_lights(cozmo.lights.red_light)
+        else:
+            cozmo.logger.warning("Cozmo is not connected to a LightCube1Id cube - check the battery.")
+
 
     async def pickupCube(self):
         #lookaround = self.robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
@@ -41,6 +49,7 @@ class Interact(object):
                 self.robot.set_all_backpack_lights(cozmo.lights.blue_light)
                 await self.robot.say_text("Hello There!").wait_for_completed()
                 res = True
+                return res
             if face and face.is_visible and firstDetect == False:
                 self.robot.set_all_backpack_lights(cozmo.lights.blue_light)
                 time.sleep(3)
@@ -55,12 +64,13 @@ class Interact(object):
                         await self.robot.say_text("Hello There!").wait_for_completed()
                         await asyncio.sleep(2)
                         self.robot.set_all_backpack_lights(cozmo.lights.off_light)
+                        res = True
+                        return res
                 except asyncio.TimeoutError:
                     print("Didn't find a face.")
 
             if res == True:
-                self.robot.play_anim(name="FistBumpRequestOnce").wait_for_completed()
-                break
+                return res
 
             if i == 10:
                 await self.robot.say_text("Hmm...").wait_for_completed()
@@ -69,54 +79,23 @@ class Interact(object):
 
         return res
 
-class reactwithcube(cozmo.objects.LightCube): #add light effect
-    def __init__(self, *a, **kw):
-        super().__init__(*a, **kw)
-        self._chaser = None
+    async def cubeChat(self):
 
-    def start_light(self):
-        if self._chaser:
-            raise ValueError("Light chaser already running")
-        async def _chaser():
-            while True:
-                for i in range(4):
-                    cols = [cozmo.lights.off_light] * 4
-                    cols[i] = cozmo.lights.blue_light
-                    self.set_light_corners(*cols)
-                    await asyncio.sleep(0.1, loop=self._loop)
-        self._chaser = asyncio.ensure_future(_chaser(), loop=self._loop)
+        self.cube.set_lights(cozmo.lights.blue_light)
+        await asyncio.sleep(1)
+        self.cube.set_lights(cozmo.lights.red_light)
+        await asyncio.sleep(1)
+        self.cube.set_lights(cozmo.lights.green_light)
+        await asyncio.sleep(1)
+        self.cube.set_lights(cozmo.lights.blue_light)
 
-    def stop_lights(self): #stops light animation
-        if self._chaser:
-            self._chaser.cancel()
-            self._chaser = None
-
-
-# Make sure World knows how to instantiate the subclass
-cozmo.world.World.light_cube_factory = reactwithcube
-
-
-async def reactwithCube(self):
-    cube = None
-    look_around = self.robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
-
-    try:
-        cube = await self.robot.world.wait_for_observed_light_cube(timeout=60)
-    except asyncio.TimeoutError:
-        print("Didn't find a cube :-(")
-        return
-    finally:
-        look_around.stop()
-
-    cube.start_light()
-    try:
-        self.robot.say_text("Please tap the cube for exciting information!",play_excited_animation =True, voice_pitch=2).wait_for_completed()
-        print("Waiting for cube to be tapped")
-        cube.wait_for_tap(timeout=10)
-        self.robot.say_text("The cube is",play_excited_animation =True, voice_pitch=2).wait_for_completed()
-        print("Cube tapped")
-    except asyncio.TimeoutError:
-        print("No-one tapped our cube :-(")
-    finally:
-        cube.stop_light()
-        cube.set_lights_off()
+        try:
+            await self.robot.say_text("Please tap the cube for exciting information!",play_excited_animation =True, voice_pitch=2).wait_for_completed()
+            print("Waiting for cube to be tapped")
+            await self.cube.wait_for_tap(timeout=10)
+            await self.robot.say_text("The cube is",play_excited_animation =True, voice_pitch=2).wait_for_completed()
+            print("Cube tapped")
+        except asyncio.TimeoutError:
+            print("No-one tapped our cube :-(")
+        finally:
+            self.cube.set_lights(cozmo.lights.blue_light)
