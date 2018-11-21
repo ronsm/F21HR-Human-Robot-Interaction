@@ -5,10 +5,15 @@ import asyncio
 import cozmo
 import time
 
+"""
+CLASS: interact.py
+
+Houses all of the key interactive elements, between robots and with humans.
+"""
 class Interact(object):
     def __init__(self, robot: cozmo.robot.Robot):
         print('[INTERACT] I am the interaction controller.')
-
+    # set specific cube to use, by calling their ID's
         self.robot = robot
         self.cube = robot.world.get_light_cube(LightCube1Id)
 
@@ -17,33 +22,32 @@ class Interact(object):
         else:
             cozmo.logger.warning("Cozmo is not connected to a LightCube1Id cube - check the battery.")
 
-
+    # search for cube within sight, pick up if found
     async def pickupCube(self):
-        #lookaround = self.robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
         cubes = await self.robot.world.wait_until_observe_num_objects(num=1, object_type=cozmo.objects.LightCube, timeout=60)
-        #lookaround.stop()
-
+    # centre the robot to the cube to prepare for pick up
         max_dst, targ = 0, None
         for cube in cubes:
             translation = self.robot.pose - cube.pose
             dst = translation.position.x ** 2 + translation.position.y ** 2
             if dst > max_dst:
                 max_dst, targ = dst, cube
-
+    # pick up the cube
             await self.robot.pickup_object(targ, num_retries=3).wait_for_completed()
-
+    # search for a face, once detected voice a confirmation with cozmo
     async def detectPerson(self):
         res = False
 
         #await self.robot.turn_in_place(degrees(-15)).wait_for_completed()
 
+    # set cozmos lift to down position and head angle to 10 and 50 degrees
         self.robot.move_lift(-3)
         for i in range(10, 50, 10):
             await self.robot.set_head_angle(degrees(i)).wait_for_completed()
-
+    # set face and detection initials
             face = None
             firstDetect = True
-        
+    # face is detected and cozmo's voices a conformation that it has detected a face
             if face and face.is_visible and firstDetect == True:
                 firstDetect = False
                 self.robot.set_all_backpack_lights(cozmo.lights.blue_light)
@@ -79,23 +83,26 @@ class Interact(object):
 
         return res
 
+    # interact with the user when face is found
     async def cubeChat(self):
-
+    # set colour of cube to blue
         self.cube.set_lights(cozmo.lights.blue_light)
         await asyncio.sleep(1)
-        self.cube.set_lights(cozmo.lights.red_light)
-        await asyncio.sleep(1)
-        self.cube.set_lights(cozmo.lights.green_light)
-        await asyncio.sleep(1)
-        self.cube.set_lights(cozmo.lights.blue_light)
-
+    # voice an instruction with cozmo then wait for instruction to be completed by user 
         try:
             await self.robot.say_text("Please tap the cube for exciting information!",play_excited_animation =True, voice_pitch=2).wait_for_completed()
             print("Waiting for cube to be tapped")
             await self.cube.wait_for_tap(timeout=10)
-            await self.robot.say_text("The cube is",play_excited_animation =True, voice_pitch=2).wait_for_completed()
+            await self.robot.say_text("This cube belongs to me but I share it with my friend Phil, without him i wouldn't of got it back! I can manipulate and control the colours of the cube, take a look!",play_excited_animation =True, voice_pitch=2).wait_for_completed()
             print("Cube tapped")
-        except asyncio.TimeoutError:
+    # transtion between RGB
+            self.cube.set_lights(cozmo.lights.red_light)
+            await asyncio.sleep(1)
+            self.cube.set_lights(cozmo.lights.green_light)
+            await asyncio.sleep(1)
+            self.cube.set_lights(cozmo.lights.blue_light)
+    # time-out if instruction was not completed        
+            except asyncio.TimeoutError:
             print("No-one tapped our cube :-(")
         finally:
             self.cube.set_lights(cozmo.lights.blue_light)

@@ -8,6 +8,12 @@ import sys
 from PIL import Image, ImageDraw, ImageFont
 import time
 
+"""
+CLASS: comms.py
+
+Handles the communication between two Cozmos.
+"""
+
 class Comms(object):
     def __init__(self, robot: cozmo.robot.Robot):
         print('[COMMS] I am the inter-robot communication controller.')

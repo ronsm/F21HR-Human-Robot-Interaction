@@ -5,6 +5,12 @@ from cozmo.util import degrees, distance_mm, speed_mmps
 import cozmo
 
 """
+CLASS: astar.py
+
+Implements localisation and navigation.
+"""
+
+"""
 
 The A* algorithm here is based on the one implemented by Lauren Luce. Functions that do not have an author indicated should
 be assumed to have originated from the source below.

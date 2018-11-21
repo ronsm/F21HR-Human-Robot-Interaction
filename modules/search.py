@@ -3,6 +3,11 @@ from cozmo.util import degrees, distance_mm, speed_mmps
 import asyncio
 import cozmo
 
+"""
+CLASS: search.py
+
+Controls the search operations taking place in Step 1.
+"""
 class Search(object):
     def __init__(self, robot: cozmo.robot.Robot, pos):
         print('[SEARCH] I am the search controller.')
@@ -17,8 +22,12 @@ class Search(object):
     Follows a path around the map to search for the object.
     """
     async def search(self):
+
+        # Path to follow - robot will not make it through all of them in the scenario
+        # as it should find the cube before then.
         actions = ["down", "down", "left", "down", "down", "right", "right", "up"]
 
+        # For every spot landed on after an action, execute a search-on-spot
         found = False
         for i in range(len(actions)):
             print('Moving: ', actions[i])
@@ -38,13 +47,17 @@ class Search(object):
     """
     async def searchOnSpot(self):
         found = False
+
+        # Look down 0, 90, 180, 270 angles when on the spot, to see if cube is in adject grid positions
         for i in range(0, 4):
             await self.robot.turn_in_place(degrees(90), in_parallel=False, num_retries=0, speed=degrees(45), accel=None, angle_tolerance=degrees(2), is_absolute=False).wait_for_completed()
             cube = None
 
+            # This is a small odometry correction as the robot tends to drift during the spinning
             if i == 2:
                 await self.robot.drive_straight(distance_mm(10), speed_mmps(50)).wait_for_completed()
 
+            # Check for an observable light cube
             try:
                 cube = await self.robot.world.wait_for_observed_light_cube(timeout=2)
                 print("Object found!", cube)
@@ -66,6 +79,9 @@ class Search(object):
     async def move(self, direction):
         success = 0
 
+        # Modifies the current position based on the move action given
+        # Uses the face function to make sure robot is facing correct direction before
+        # attempting to move it forward
         if direction == "up":
             self.nextPos[1] = self.currentPos[1] - 2
             await self.face("north")
@@ -89,6 +105,7 @@ class Search(object):
         self.currentPos[0] = self.nextPos[0]
         self.currentPos[1] = self.nextPos[1]
 
+        # Move the robot forward if the robot succesfully faced the right way
         if success == 0:
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
         elif success == 1:
@@ -102,6 +119,8 @@ class Search(object):
     async def face(self, direction):
         currentHeading = self.currentPos[2]
 
+        # Make a turn based on the current heading
+        # Adjust current heading to match command
         if direction == "north":
             if currentHeading == 270:
                 headingDifference = -90
