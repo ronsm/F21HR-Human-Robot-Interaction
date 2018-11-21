@@ -8,7 +8,7 @@ import cozmo
 
 The A* algorithm here is based on the one implemented by Lauren Luce. Functions that do not have an author indicated should
 be assumed to have originated from the source below.
-Source: https://github.com/laurentluce/python-algorithms/tree/master/algorithms/tests
+Source: https://github.com/laurentluce/python-algorithms/tree/master/algorithms/
 
 """
 class Cell(object):
@@ -315,7 +315,7 @@ class AStar(object):
             print("[GRID] Invalid direction given to face(self, direction)")
 
         print('Turning', headingDifference, 'to face', direction)
-        await self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
+        await self.robot.turn_in_place(degrees(headingDifference), in_parallel=False, num_retries=0, speed=degrees(45), accel=None, angle_tolerance=degrees(2), is_absolute=False).wait_for_completed()
 
     """
     Author: Ronnie Smith

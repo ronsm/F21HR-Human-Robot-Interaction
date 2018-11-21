@@ -13,13 +13,16 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     robot1 = await sdk_conn1.wait_for_robot()
     robot2 = await sdk_conn2.wait_for_robot()
 
+    await robot1.set_head_angle(degrees(0)).wait_for_completed()
+    await robot2.set_head_angle(degrees(0)).wait_for_completed()
+
     # We will check whether each step is successful
     res = False
 
-    # currentPos1 = [0, 3, 180] # Initialised at Step 1
-    # currentPos2 = [2, 6, 180] # Initialised at Step 2
+    currentPos1 = [0, 3, 180] # Initialised at Step 1
+    currentPos2 = [2, 6, 180] # Initialised at Step 2
 
-    # Step 1
+    # # Step 1
     # res, currentPos1 = await step_1(robot1, currentPos1) # currentPos = [3, 2, 90]
     # destPos = currentPos1
     # if res == False:
@@ -33,11 +36,11 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     # print(currentPos1)
 
     # Step 3]
-    # destPos = [6, 4, 90]     # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # currentPos1 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, destPos = await step_3(robot1, robot2, destPos)
-    # if res == False:
-    #     print('[ERROR][STEP 3] Robot syncronisation process failed.')
+    destPos = [6, 4, 90]     # USE ONLY IF PREVIOUS STEP IS DISABLED
+    currentPos1 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    res, destPos = await step_3(robot1, robot2, destPos)
+    if res == False:
+        print('[ERROR][STEP 3] Robot syncronisation process failed.')
 
     # # Step 4
     # currentPos1 = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
@@ -50,9 +53,9 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     # await step_5(robot1)
 
     # Step 6
-    currentPos1 = [8, 4, 0]  # USE ONLY IF PREVIOUS STEP IS DISABLED
-    currentPos2 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    res, currentPos1, currentPos2 = await step_6(robot1, robot2, currentPos1, currentPos2)
+    # currentPos1 = [8, 4, 0]  # USE ONLY IF PREVIOUS STEP IS DISABLED
+    # currentPos2 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
+    # res, currentPos1, currentPos2 = await step_6(robot1, robot2, currentPos1, currentPos2)
 
     # Step 7
     # await step_7(robot1)
@@ -215,7 +218,6 @@ async def step_6(robot1, robot2, currentPos1, currentPos2):
 
     await a.face("south")
     currentPos2 = a.getPos()
-
 
     # ROBOT 1
     a = AStar(robot1, currentPos1)

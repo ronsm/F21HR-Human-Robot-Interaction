@@ -21,6 +21,7 @@ class Search(object):
 
         found = False
         for i in range(len(actions)):
+            print('Moving: ', actions[i])
             await self.move(actions[i])
             found = await self.searchOnSpot()
             if found == True:
@@ -38,9 +39,11 @@ class Search(object):
     async def searchOnSpot(self):
         found = False
         for i in range(0, 4):
-            await self.robot.turn_in_place(degrees(90)).wait_for_completed()
-
+            await self.robot.turn_in_place(degrees(90), in_parallel=False, num_retries=0, speed=degrees(45), accel=None, angle_tolerance=degrees(2), is_absolute=False).wait_for_completed()
             cube = None
+
+            if i == 2:
+                await self.robot.drive_straight(distance_mm(10), speed_mmps(50)).wait_for_completed()
 
             try:
                 cube = await self.robot.world.wait_for_observed_light_cube(timeout=2)
@@ -65,19 +68,19 @@ class Search(object):
 
         if direction == "up":
             self.nextPos[1] = self.currentPos[1] - 2
-            self.face("north")
+            await self.face("north")
             success = 1
         elif direction == "down":
             self.nextPos[1] = self.currentPos[1] + 2
-            self.face("south")
+            await self.face("south")
             success = 1
         elif direction == "left":
             self.nextPos[0] = self.currentPos[0] + 2
-            self.face("west")
+            await self.face("west")
             success = 1
         elif direction == "right":
             self.nextPos[0] = self.currentPos[0] + 2
-            self.face("east")
+            await self.face("east")
             success = 1
         else:
             print('[GRID] Unable to execute navigation command: invalid direction provided.')

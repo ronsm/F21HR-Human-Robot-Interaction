@@ -10,6 +10,20 @@ class Interact(object):
 
         self.robot = robot
 
+    async def pickupCube(self):
+        #lookaround = self.robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
+        cubes = await self.robot.world.wait_until_observe_num_objects(num=1, object_type=cozmo.objects.LightCube, timeout=60)
+        #lookaround.stop()
+
+        max_dst, targ = 0, None
+        for cube in cubes:
+            translation = self.robot.pose - cube.pose
+            dst = translation.position.x ** 2 + translation.position.y ** 2
+            if dst > max_dst:
+                max_dst, targ = dst, cube
+
+            await self.robot.pickup_object(targ, num_retries=3).wait_for_completed()
+
     async def detectPerson(self):
         res = False
 
@@ -45,6 +59,7 @@ class Interact(object):
                     print("Didn't find a face.")
 
             if res == True:
+                self.robot.play_anim(name="FistBumpRequestOnce").wait_for_completed()
                 break
 
             if i == 10:
@@ -54,16 +69,54 @@ class Interact(object):
 
         return res
 
-    async def pickupCube(self):
-        #lookaround = self.robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
-        cubes = await self.robot.world.wait_until_observe_num_objects(num=1, object_type=cozmo.objects.LightCube, timeout=60)
-        #lookaround.stop()
+class reactwithcube(cozmo.objects.LightCube): #add light effect
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self._chaser = None
 
-        max_dst, targ = 0, None
-        for cube in cubes:
-            translation = self.robot.pose - cube.pose
-            dst = translation.position.x ** 2 + translation.position.y ** 2
-            if dst > max_dst:
-                max_dst, targ = dst, cube
+    def start_light(self):
+        if self._chaser:
+            raise ValueError("Light chaser already running")
+        async def _chaser():
+            while True:
+                for i in range(4):
+                    cols = [cozmo.lights.off_light] * 4
+                    cols[i] = cozmo.lights.blue_light
+                    self.set_light_corners(*cols)
+                    await asyncio.sleep(0.1, loop=self._loop)
+        self._chaser = asyncio.ensure_future(_chaser(), loop=self._loop)
 
-            await self.robot.pickup_object(targ, num_retries=3).wait_for_completed()
+    def stop_lights(self): #stops light animation
+        if self._chaser:
+            self._chaser.cancel()
+            self._chaser = None
+
+
+# Make sure World knows how to instantiate the subclass
+cozmo.world.World.light_cube_factory = reactwithcube
+
+
+async def reactwithCube(self):
+    cube = None
+    look_around = self.robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
+
+    try:
+        cube = await self.robot.world.wait_for_observed_light_cube(timeout=60)
+    except asyncio.TimeoutError:
+        print("Didn't find a cube :-(")
+        return
+    finally:
+        look_around.stop()
+
+    cube.start_light()
+    try:
+        self.robot.say_text("Please tap the cube for exciting information!",play_excited_animation =True, voice_pitch=2).wait_for_completed()
+        print("Waiting for cube to be tapped")
+        cube.wait_for_tap(timeout=10)
+        self.robot.say_text("The cube is",play_excited_animation =True, voice_pitch=2).wait_for_completed()
+        print("Cube tapped")
+    except asyncio.TimeoutError:
+        print("No-one tapped our cube :-(")
+    finally:
+        cube.stop_light()
+        cube.set_lights_off()
