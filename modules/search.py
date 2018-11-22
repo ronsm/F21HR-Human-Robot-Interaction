@@ -75,6 +75,9 @@ class Search(object):
     Author: Ronnie Smith
     
     Moves the robot and saves the new position.
+
+    NOTE: This is a duplicate of a function in astart.py, there were some
+    issues trying to run it from the other class.
     """
     async def move(self, direction):
         success = 0
@@ -115,6 +118,9 @@ class Search(object):
     Author: Ronnie Smith
     
     Turns the robot to face a given direction, based on current heading.
+
+    NOTE: This is a duplicate of a function in astart.py, there were some
+    issues trying to run it from the other class.
     """
     async def face(self, direction):
         currentHeading = self.currentPos[2]

@@ -12,7 +12,7 @@ Implements localisation and navigation.
 
 """
 
-The A* algorithm here is based on the one implemented by Lauren Luce. Functions that do not have an author indicated should
+The A* algorithm here is based on the one implemented by Laurent Luce. Functions that do not have an author indicated should
 be assumed to have originated from the source below.
 Source: https://github.com/laurentluce/python-algorithms/tree/master/algorithms/
 
@@ -138,10 +138,12 @@ class AStar(object):
     """
 
     def initLegoWorld(self, start, end):
+        # These points represent where the are occupied cells on the grid, will not be considered in path planning
         # walls = ((0, 5), (1, 1), (1, 3), (1, 5), (1, 7), (2, 7), (3, 1), (3, 3), (3, 5), (3, 6), (3, 7), (4, 3),
         #         (5, 1), (5, 2), (5, 3), (5, 5), (5, 7), (5, 8), (6, 1), (6, 2), (6, 3), (6, 7), (6, 8), (7, 1),
         #         (7, 2), (7, 3), (7, 4), (7, 5), (7, 7), (7, 8), (8, 7), (8, 8))
 
+        # These points represent where the are occupied cells on the grid, will not be considered in path planning
         walls = ((0, 0), (0, 1), (0, 7), (0, 8), (1, 0), (1, 1), (1, 3), (1, 5), (1, 7), (1, 8), (2, 3), (2, 7), (2, 8), 
                 (3, 1), (3, 3), (3, 4), (3, 5), (3, 7), (3, 8), (5, 1), (5, 3), (5, 5), (5, 6), (5, 7), (6, 1), (7, 1),
                 (7, 2), (7, 3), (7, 5), (7, 6), (7, 7), (6, 2))
@@ -159,12 +161,17 @@ class AStar(object):
     """
     def pathToActions(self, path):
         newPath = []
+
+        # The robot will traverse directly from centre-point A to centre-point B
+        # This removes the points representing intermediate points (tile boundaries)
         j = 0
         for i in range(len(path)):
             if i % 2 == 0:
                 newPath.append(path[i])
                 j = j + 1
 
+        # Determine, based on adjacent coordinates, what action must be taken to get
+        # to the next coordinate on the grid.
         actions = []
         for i in range(1, len(newPath)):
             if newPath[i][0] > newPath[i - 1][0]:
@@ -199,6 +206,8 @@ class AStar(object):
         for i in range(0, len(self.cells)):
             res = self.cellIsOnPath(path, self.cells[i].x, self.cells[i].y)
             if res == True:
+                # If cell is on the path, change its grid representation to a *
+                # So that this function effectively prints the calculated route
                 print('[*]', end='')
             else:
                 if self.cells[i].reachable == True:
@@ -218,6 +227,7 @@ class AStar(object):
     def cellIsOnPath(self, path, x, y):
         isOnPath = False
 
+        # If coordinates match, cell is on path
         for i in range(0, len(path)):
             if path[i][0] == x and path[i][1] == y:
                 isOnPath = True
@@ -235,6 +245,9 @@ class AStar(object):
         yMod = False
         xMod = False
 
+        # Modifies the current position based on the move action given
+        # Uses the face function to make sure robot is facing correct direction before
+        # attempting to move it forward
         if direction == "up":
             self.nextPos[0] = self.currentPos[0] - 2
             await self.face("north")
@@ -264,6 +277,7 @@ class AStar(object):
         if xMod == True:
             self.currentPos[1] = self.nextPos[1]
 
+        # Move the robot forward if the robot succesfully faced the right way
         if success == 0:
             print('[GRID] Unable to execute navigation command: new grid position occupied.')
         elif success == 1:
@@ -288,6 +302,9 @@ class AStar(object):
     """
     async def face(self, direction):
         currentHeading = self.currentPos[2]
+
+        # Make a turn based on the current heading
+        # Adjust current heading to match command
 
         if direction == "north":
             if currentHeading == 270:
