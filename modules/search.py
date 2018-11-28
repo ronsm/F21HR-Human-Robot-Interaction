@@ -24,8 +24,9 @@ class Search(object):
     async def search(self):
 
         # Path to follow - robot will not make it through all of them in the scenario
-        # as it should find the cube before then.
-        actions = ["down", "down", "left", "down", "down", "right", "right", "up"]
+        # as it should find the cube before then. Path currently does not cover whole arena,
+        # since robot 1 might collide with robot 2.
+        actions = ["down", "down", "left", "down", "down", "left", "left", "up", "up", "right", "right", "right", "right", "down", "down", "down"]
 
         # For every spot landed on after an action, execute a search-on-spot
         found = False
@@ -55,7 +56,7 @@ class Search(object):
 
             # This is a small odometry correction as the robot tends to drift during the spinning
             if i == 2:
-                await self.robot.drive_straight(distance_mm(10), speed_mmps(50)).wait_for_completed()
+                await self.robot.drive_straight(distance_mm(-15), speed_mmps(50)).wait_for_completed()
 
             # Check for an observable light cube
             try:
@@ -155,4 +156,4 @@ class Search(object):
             print("[GRID] Invalid direction given to face(self, direction)")
 
         print('Turning', headingDifference, 'to face', direction)
-        await self.robot.turn_in_place(degrees(headingDifference)).wait_for_completed()
+        await self.robot.turn_in_place(degrees(headingDifference), in_parallel=False, num_retries=0, speed=degrees(45), accel=None, angle_tolerance=degrees(2), is_absolute=False).wait_for_completed()

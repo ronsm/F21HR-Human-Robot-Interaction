@@ -80,6 +80,7 @@ class Comms(object):
         image = self.face_images[select]
 
         self.robot.display_oled_face_image(image, duration * 1000.0)
+
     # clear dislpay
     def clear(self):
         duration = 0.2
@@ -112,7 +113,7 @@ class Comms(object):
             elif str(object[0].object_type) == "CustomObjectTypes.CustomType03":
                 res = 6
             elif str(object[0].object_type) == "CustomObjectTypes.CustomType04":
-                res = 7
+                res = 8
 
         say = str(res) + "? Ok."
         await self.robot.say_text(say).wait_for_completed()

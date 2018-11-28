@@ -36,49 +36,48 @@ async def cozmo_program(sdk_conn1, sdk_conn2):
     currentPos2 = [2, 6, 180]
 
     # # Step 1
-    # res, currentPos1 = await step_1(robot1, currentPos1) # currentPos = [3, 2, 90]
-    # destPos = currentPos1
-    # if res == False:
-    #     print('[ERROR][STEP 1] Could not find cube on search path.')
+    res, currentPos1 = await step_1(robot1, currentPos1) # currentPos = [3, 2, 90]
+    destPos = currentPos1
+    if res == False:
+        print('[ERROR][STEP 1] Could not find cube on search path.')
 
-    # Step 2
+    # # Step 2
     # currentPos1 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, currentPos1 = await step_2(robot1, currentPos1)
-    # if res == False:
-    #     print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
-    # print(currentPos1)
+    res, currentPos1 = await step_2(robot1, currentPos1)
+    if res == False:
+        print('[ERROR][STEP 2] Unable to move Robot 1 to face Robot 2.')
+    print(currentPos1)
 
-    # Step 3]
+    # # Step 3
     # destPos = [6, 4, 90]     # USE ONLY IF PREVIOUS STEP IS DISABLED
     # currentPos1 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, destPos = await step_3(robot1, robot2, destPos)
-    # if res == False:
-    #     print('[ERROR][STEP 3] Robot syncronisation process failed.')
+    res, destPos = await step_3(robot1, robot2, destPos)
+    if res == False:
+        print('[ERROR][STEP 3] Robot syncronisation process failed.')
 
     # # Step 4
     # destPos = [6, 4, 90]    # USE ONLY IF PREVIOUS STEP IS DISABLED
     # currentPos1 = [4, 6, 0] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, currentPos1, currentPos2 = await step_4(robot1, robot2, currentPos1, currentPos2, destPos)
-    # if res == False:
-    #     print('[ERROR][STEP 4] Unable to move Robot 1 to observation position.')
-    # print(currentPos1, currentPos2)
+    res, currentPos1, currentPos2 = await step_4(robot1, robot2, currentPos1, currentPos2, destPos)
+    if res == False:
+        print('[ERROR][STEP 4] Unable to move Robot 1 to observation position.')
+    print(currentPos1, currentPos2)
 
-    # Step 5
-    # await step_5(robot2)
+    # # Step 5
+    await step_5(robot2)
 
-    # Step 6
+    # # Step 6
     # currentPos1 = [8, 4, 0]  # USE ONLY IF PREVIOUS STEP IS DISABLED
     # currentPos2 = [6, 4, 90] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, currentPos1, currentPos2 = await step_6(robot1, robot2, currentPos1, currentPos2)
+    res, currentPos1, currentPos2 = await step_6(robot1, robot2, currentPos1, currentPos2)
 
-    # Step 7
-    # await step_7(robot1)
+    # # Step 7
+    await step_7(robot1, robot2)
 
-    # Step 8
+    # # Step 8
     # currentPos1 = [4, 2, 270]  # USE ONLY IF PREVIOUS STEP IS DISABLED
     # currentPos2 = [4, 0, 180] # USE ONLY IF PREVIOUS STEP IS DISABLED
-    # res, currentPos1, currentPos2 = await step_8(robot1, robot2, currentPos1, currentPos2)
-    
+    res, currentPos1, currentPos2 = await step_8(robot1, robot2, currentPos1, currentPos2)
 
 """
 Author: Both
@@ -173,7 +172,7 @@ async def step_3(robot1, robot2, destPos):
 
     # Need to break out of the centre-grid positioning, because they must be closer
     # together when exchanging the coordinates
-    await robot1.drive_straight(distance_mm(125), speed_mmps(40)).wait_for_completed()
+    # await robot1.drive_straight(distance_mm(125), speed_mmps(40)).wait_for_completed()
 
     # Robot 1 communicates, for the benefit of humans listening, that it will now
     # begin exchanging coordinates
@@ -181,10 +180,8 @@ async def step_3(robot1, robot2, destPos):
     say = "Here is where I saw it. X equals:" + str(4)
     await robot1.say_text(say).wait_for_completed()
 
-    # comms1.display(y)
-    # res = await comms2.read()
-    # destPos[0] = res
-    # comms1.clear()
+    #robot 2 communitcation
+    await robot2.say_text("Ok, let me grab a pen...").wait_for_completed()
 
     # Since there is a chance of bad alignment of the robots, a few attempts are
     # made at slightly different angles to increase chances of success.
@@ -194,6 +191,8 @@ async def step_3(robot1, robot2, destPos):
     for i in range(0, 3):
         comms1.display(y)
         res = await comms2.read()
+        # await asyncio.sleep(2)
+        # res = 6
         destPos[0] = res
         comms1.clear()
         if res != -1:
@@ -212,6 +211,8 @@ async def step_3(robot1, robot2, destPos):
 
     comms1.display(x)
     res = await comms2.read()
+    # res = 4
+    await asyncio.sleep(2)
     destPos[1] = res
     comms1.clear()
 
@@ -219,7 +220,7 @@ async def step_3(robot1, robot2, destPos):
         print('[ERROR][CONTROL] Robot 2 was unable to detect Robot 1 coordinate X. ')
 
     await asyncio.sleep(2)
-
+    await robot2.say_text("or... not").wait_for_completed()
     await robot1.drive_straight(distance_mm(-125), speed_mmps(40)).wait_for_completed()
 
     return True, destPos
@@ -328,7 +329,7 @@ async def step_6(robot1, robot2, currentPos1, currentPos2):
     currentPos1 = a.getPos()
 
     await robot1.drive_straight(distance_mm(150), speed_mmps(50)).wait_for_completed()
-    await robot1.turn_in_place(degrees(50)).wait_for_completed()
+    await robot1.turn_in_place(degrees(70)).wait_for_completed()
 
     return True, currentPos1, currentPos2
 
@@ -339,10 +340,12 @@ Orchestrates the actions taken in Step 7.
 """
 # ROBOT 2 puts down the cube
 # ROBOT 2 then searches for person
-async def step_7(robot1):
+async def step_7(robot1, robot2):
     # Uses an instance of the 'interact' class to search for a human face.
     interact = Interact(robot1)
     res = await interact.detectPerson()
+
+    await robot2.set_lift_height(0.0, in_parallel=False).wait_for_completed()
 
     # If a face is found, an interactive element begins.
     if res == True:
@@ -357,7 +360,7 @@ Orchestrates the actions taken in Step 8.
 # ROBOT 1 and ROBOT 2 go to their respective chargers
 async def step_8(robot1, robot2, currentPos1, currentPos2):
     # Undo the movements made by the robots when trying to 'look natural' in Step 6.
-    await robot1.turn_in_place(degrees(-50)).wait_for_completed()
+    await robot1.turn_in_place(degrees(-70)).wait_for_completed()
     await robot1.drive_straight(distance_mm(-150), speed_mmps(50)).wait_for_completed()
 
     # Navigation procedure as in Step 2.
